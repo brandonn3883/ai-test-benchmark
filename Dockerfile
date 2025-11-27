@@ -52,9 +52,8 @@ ENV MAVEN_OPTS="-Xmx1024m"
 
 # Create directory structure
 RUN mkdir -p /workspace/ai-test-benchmark/benchmarks/{javascript,python,java} && \
-    mkdir -p /workspace/ai-test-benchmark/results/coverage_reports && \
-    mkdir -p /workspace/ai-test-benchmark/scripts
-
+    mkdir -p /workspace/ai-test-benchmark/results/coverage_reports
+    
 # Copy scripts into the container
 COPY run_all_tests.sh /workspace/ai-test-benchmark/
 COPY generate_coverage_reports.sh /workspace/ai-test-benchmark/

@@ -1,10 +1,11 @@
 #!/bin/bash
 
+##############################################################
 # Universal Test Runner
-
+##############################################################
 # Automatically detects and runs tests for all benchmark projects
-# Currently works with JavaScript, Python, and Java
-
+# Works with JavaScript, Python, and Java
+##############################################################
 
 set -e
 
@@ -20,13 +21,14 @@ echo "========================================="
 echo ""
 
 # Check if we're in the right place
-if [ ! -d "ai-test-benchmark" ]; then
+if [ ! -d "../ai-test-benchmark" ] && [ ! -d "ai-test-benchmark" ]; then
     echo -e "${RED}Error: ai-test-benchmark directory not found${NC}"
     echo "Please run this from the directory containing ai-test-benchmark/"
     exit 1
 fi
 
-cd ai-test-benchmark
+# Navigate to the correct directory
+cd ../ai-test-benchmark 2>/dev/null || cd ai-test-benchmark
 
 # Initialize counters
 total_projects=0
