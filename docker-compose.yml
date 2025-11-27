@@ -1,0 +1,17 @@
+services:
+  ai-test-benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-test-benchmark
+    working_dir: /workspace
+    volumes:
+      # Mount the benchmarks directory so changes persist
+      - ./ai-test-benchmark/benchmarks:/workspace/ai-test-benchmark/benchmarks
+      # Mount results directory to access reports on host
+      - ./ai-test-benchmark/results:/workspace/ai-test-benchmark/results
+    stdin_open: true
+    tty: true
+    environment:
+      - TERM=xterm-256color
+    command: /bin/bash
