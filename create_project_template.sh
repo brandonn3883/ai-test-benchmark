@@ -3,8 +3,8 @@
 ##############################################################
 # Project Template Generator
 ##############################################################
-# Creates standardized project structures for benchmarking
-# Ensures all projects follow the same conventions
+# Creates projects with separate directories for each LLM's tests
+# For data collection ONLY (does not compare LLM's!)
 ##############################################################
 
 set -e
@@ -12,10 +12,12 @@ set -e
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
+CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo "========================================="
 echo "Project Template Generator"
+echo "LLM Comparison Structure"
 echo "========================================="
 echo ""
 
@@ -26,7 +28,6 @@ if [ ! -d "../ai-test-benchmark" ] && [ ! -d "ai-test-benchmark" ]; then
     exit 1
 fi
 
-# Navigate to the correct directory
 cd ../ai-test-benchmark 2>/dev/null || cd ai-test-benchmark
 
 # Get project details
@@ -73,23 +74,37 @@ echo ""
 echo "Creating $LANGUAGE project: $project_name"
 echo "Location: $PROJECT_DIR"
 echo ""
+echo -e "${CYAN}Test directories for each LLM:${NC}"
+echo "  - chatgpt/   (ChatGPT/GPT-4 generated tests)"
+echo "  - claude/    (Claude generated tests)"
+echo "  - gemini/    (Gemini generated tests)"
+echo "  - copilot/   (GitHub Copilot tests)"
+echo ""
 
 # Create JavaScript project
 create_javascript_project() {
-    mkdir -p "$PROJECT_DIR"/{src,tests}
+    mkdir -p "$PROJECT_DIR"/src
+    mkdir -p "$PROJECT_DIR"/tests/{chatgpt,claude,gemini,copilot}
     
     # package.json
     cat > "$PROJECT_DIR/package.json" << EOF
 {
   "name": "$project_name",
   "version": "1.0.0",
-  "description": "Benchmark project for AI test generation",
+  "description": "Benchmark project for AI test generation comparison",
   "scripts": {
     "test": "jest",
+    "test:chatgpt": "jest tests/chatgpt",
+    "test:claude": "jest tests/claude",
+    "test:gemini": "jest tests/gemini",
+    "test:copilot": "jest tests/copilot",
     "coverage": "jest --coverage",
-    "test:watch": "jest --watch"
+    "coverage:chatgpt": "jest tests/chatgpt --coverage --coverageDirectory=coverage/chatgpt",
+    "coverage:claude": "jest tests/claude --coverage --coverageDirectory=coverage/claude",
+    "coverage:gemini": "jest tests/gemini --coverage --coverageDirectory=coverage/gemini",
+    "coverage:copilot": "jest tests/copilot --coverage --coverageDirectory=coverage/copilot"
   },
-  "keywords": ["benchmark", "testing"],
+  "keywords": ["benchmark", "testing", "ai-comparison"],
   "author": "",
   "license": "MIT",
   "devDependencies": {
@@ -107,8 +122,9 @@ module.exports = {
     'src/**/*.js',
     '!**/node_modules/**'
   ],
-  coverageReporters: ['text', 'html', 'json-summary'],
-  testMatch: ['**/tests/**/*.test.js']
+  coverageReporters: ['text', 'html', 'json-summary', 'json'],
+  testMatch: ['**/tests/**/*.test.js'],
+  coveragePathIgnorePatterns: ['/node_modules/']
 };
 EOF
 
@@ -124,7 +140,20 @@ EOF
     cat > "$PROJECT_DIR/README.md" << EOF
 # $project_name
 
-Benchmark project for evaluating AI test generation tools.
+Benchmark project for comparing AI test generation tools.
+
+## Structure
+
+\`\`\`
+$project_name/
+├── src/              # Source code
+├── tests/
+│   ├── chatgpt/     # ChatGPT generated tests
+│   ├── claude/      # Claude generated tests
+│   ├── gemini/      # Gemini generated tests
+│   └── copilot/     # GitHub Copilot tests
+└── coverage/        # Coverage reports per LLM
+\`\`\`
 
 ## Setup
 
@@ -132,66 +161,146 @@ Benchmark project for evaluating AI test generation tools.
 npm install
 \`\`\`
 
-## Run Tests
+## Running Tests
 
 \`\`\`bash
-# Run tests
+# Run specific LLM tests
+npm run test:chatgpt
+npm run test:claude
+npm run test:gemini
+npm run test:copilot
+
+# Run all tests
 npm test
-
-# Run with coverage
-npm run coverage
-
-# Watch mode
-npm test:watch
 \`\`\`
 
-## View Coverage
+## Coverage Reports
 
 \`\`\`bash
-open coverage/index.html
+# Generate coverage for specific LLM
+npm run coverage:chatgpt
+npm run coverage:claude
+npm run coverage:gemini
+npm run coverage:copilot
+
+# View coverage
+open coverage/chatgpt/index.html
+open coverage/claude/index.html
 \`\`\`
 
-## Project Structure
+## Workflow
 
-\`\`\`
-$project_name/
-├── src/           # Source code (add your functions here)
-├── tests/         # Tests (add your tests here)
-├── package.json   # Dependencies and scripts
-└── README.md      # This file
-\`\`\`
+### 1. Add Source Code
 
-## Adding Your Code
+Add your code to \`src/\`
 
-1. Add source files to \`src/\`
-2. Add test files to \`tests/\` (name them \`*.test.js\`)
-3. Run \`npm test\` to verify
-4. Run \`npm run coverage\` to see coverage
+### 2. Generate Tests with Each LLM
 
-## Example
+**For ChatGPT:**
+1. Go to chat.openai.com
+2. Use prompt from PROMPTS.md
+3. Paste generated tests into \`tests/chatgpt/\`
+4. Run: \`npm run coverage:chatgpt\`
 
+**For Claude:**
+1. Go to claude.ai
+2. Use prompt from PROMPTS.md
+3. Paste generated tests into \`tests/claude/\`
+4. Run: \`npm run coverage:claude\`
+
+**For Gemini:**
+1. Go to gemini.google.com
+2. Use prompt from PROMPTS.md
+3. Paste generated tests into \`tests/gemini/\`
+4. Run: \`npm run coverage:gemini\`
+
+**For GitHub Copilot:**
+1. Use Copilot in VS Code
+2. Save tests to \`tests/copilot/\`
+3. Run: \`npm run coverage:copilot\`
+
+### 3. Record Results in Excel
+
+Create spreadsheet with columns:
+- Project
+- LLM
+- Statements %
+- Branches %
+- Functions %
+- Lines %
+- Tests Generated
+- Notes
+
+## Import Paths
+
+All tests should import from: \`'../../../src/filename'\`
+
+Example:
 \`\`\`javascript
-// src/example.js
-function add(a, b) {
-  return a + b;
-}
-
-module.exports = { add };
-\`\`\`
-
-\`\`\`javascript
-// tests/example.test.js
-const { add } = require('../src/example');
-
-describe('add', () => {
-  test('adds two numbers', () => {
-    expect(add(1, 2)).toBe(3);
-  });
-});
+const { add, subtract } = require('../../../src/calculator');
 \`\`\`
 EOF
 
-    # Example files
+    # PROMPTS.md
+    cat > "$PROJECT_DIR/PROMPTS.md" << 'EOF'
+# Test Generation Prompts
+
+## JavaScript / Jest Prompt
+
+Copy this entire prompt and paste into ChatGPT, Claude, or Gemini:
+
+\`\`\`
+You are an expert JavaScript test engineer. Generate comprehensive Jest tests.
+
+SOURCE CODE:
+[paste your source code here]
+
+REQUIREMENTS:
+1. Use Jest testing framework
+2. Test all exported functions/classes
+3. Include edge cases: null, undefined, empty strings, empty arrays, boundary values
+4. Test error handling with expect().toThrow()
+5. Aim for 100% code coverage (all lines, branches, functions)
+6. Use descriptive test names that explain what is being tested
+7. Group related tests with describe() blocks
+8. IMPORTANT: Only use Jest built-in features. Do NOT import external libraries like jsdom, @testing-library, or any other packages unless they are already listed in package.json. Use standard Jest matchers and Node.js built-ins only.
+
+IMPORT PATH:
+Import from: '../../../src/[filename]'
+Example: const { func1, func2 } = require('../../../src/calculator');
+
+OUTPUT:
+Generate ONLY the test file code. Do not include:
+- Explanations or markdown
+- Code block markers (```)
+- Any text before or after the code
+
+Start directly with the require/import statements.
+\`\`\`
+
+---
+
+## How to Use
+
+1. **Copy the prompt above**
+2. **Replace** `[paste your source code here]` with your actual source file
+3. **Paste entire prompt** into LLM (ChatGPT, Claude, Gemini)
+4. **Copy the generated code** (remove any markdown if present)
+5. **Save to appropriate folder**:
+   - ChatGPT → tests/chatgpt/
+   - Claude → tests/claude/
+   - Gemini → tests/gemini/
+6. **Run coverage**: \`npm run coverage:chatgpt\` (or appropriate LLM)
+
+## Tips
+
+- Make sure to use the correct import path: \`'../../../src/filename'\`
+- Remove markdown code blocks (```) if the LLM includes them
+- File naming: Same as source file but with \`.test.js\`
+- If tests don't run, check import paths first
+EOF
+
+    # Example source file
     cat > "$PROJECT_DIR/src/example.js" << 'EOF'
 /**
  * Example function - replace with your own code
@@ -203,31 +312,31 @@ function example() {
 module.exports = { example };
 EOF
 
-    cat > "$PROJECT_DIR/tests/example.test.js" << 'EOF'
-const { example } = require('../src/example');
-
-describe('example', () => {
-  test('returns greeting', () => {
-    expect(example()).toBe("Hello, World!");
-  });
-});
-EOF
+    # Create empty .gitkeep files
+    touch "$PROJECT_DIR/tests/chatgpt/.gitkeep"
+    touch "$PROJECT_DIR/tests/claude/.gitkeep"
+    touch "$PROJECT_DIR/tests/gemini/.gitkeep"
+    touch "$PROJECT_DIR/tests/copilot/.gitkeep"
 
     echo -e "${GREEN}+ JavaScript project created${NC}"
     echo ""
     echo "Next steps:"
     echo "  cd $PROJECT_DIR"
     echo "  npm install"
-    echo "  npm test"
 }
 
 # Create Python project
 create_python_project() {
-    mkdir -p "$PROJECT_DIR"/{src,tests}
+    mkdir -p "$PROJECT_DIR"/src
+    mkdir -p "$PROJECT_DIR"/tests/{chatgpt,claude,gemini,copilot}
     
     # Create __init__.py files
     touch "$PROJECT_DIR/src/__init__.py"
     touch "$PROJECT_DIR/tests/__init__.py"
+    touch "$PROJECT_DIR/tests/chatgpt/__init__.py"
+    touch "$PROJECT_DIR/tests/claude/__init__.py"
+    touch "$PROJECT_DIR/tests/gemini/__init__.py"
+    touch "$PROJECT_DIR/tests/copilot/__init__.py"
     
     # pytest.ini
     cat > "$PROJECT_DIR/pytest.ini" << 'EOF'
@@ -249,110 +358,108 @@ htmlcov/
 .pytest_cache/
 *.egg-info/
 .DS_Store
+htmlcov_*/
 EOF
 
     # README.md
     cat > "$PROJECT_DIR/README.md" << EOF
 # $project_name
 
-Benchmark project for evaluating AI test generation tools.
+Benchmark project for comparing AI test generation tools.
+
+## Structure
+
+\`\`\`
+$project_name/
+├── src/              # Source code
+└── tests/
+    ├── chatgpt/     # ChatGPT generated tests
+    ├── claude/      # Claude generated tests
+    ├── gemini/      # Gemini generated tests
+    └── copilot/     # GitHub Copilot tests
+\`\`\`
 
 ## Setup
 
 \`\`\`bash
-# Activate virtual environment
 source ../../../venv/bin/activate
-
-# Or create project-specific venv
-python3 -m venv venv
-source venv/bin/activate
 pip install pytest pytest-cov
 \`\`\`
 
-## Run Tests
+## Running Tests
 
 \`\`\`bash
-# Run tests
-pytest
-
-# Run with coverage
-pytest --cov=src
-
-# Generate HTML coverage report
-pytest --cov=src --cov-report=html
-
-# Run with detailed output
-pytest -v --cov=src --cov-report=term-missing
+# Run specific LLM tests
+pytest tests/chatgpt
+pytest tests/claude
+pytest tests/gemini
+pytest tests/copilot
 \`\`\`
 
-## View Coverage
+## Coverage Reports
 
 \`\`\`bash
-open htmlcov/index.html
+# Generate coverage for specific LLM
+pytest tests/chatgpt --cov=src --cov-report=html:htmlcov_chatgpt --cov-report=json:coverage_chatgpt.json
+pytest tests/claude --cov=src --cov-report=html:htmlcov_claude --cov-report=json:coverage_claude.json
+
+# View coverage
+open htmlcov_chatgpt/index.html
+open htmlcov_claude/index.html
 \`\`\`
 
-## Project Structure
+## Import Paths
 
-\`\`\`
-$project_name/
-├── src/           # Source code (add your modules here)
-├── tests/         # Tests (add your test files here)
-├── pytest.ini     # Pytest configuration
-└── README.md      # This file
-\`\`\`
+All tests should import from: \`src.module\`
 
-## Adding Your Code
-
-1. Add Python modules to \`src/\`
-2. Add test files to \`tests/\` (name them \`test_*.py\`)
-3. Run \`pytest\` to verify
-4. Run \`pytest --cov=src --cov-report=html\` for coverage
-
-## Example
-
+Example:
 \`\`\`python
-# src/example.py
-def add(a, b):
-    \"\"\"Add two numbers.\"\"\"
-    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
-        raise TypeError("Arguments must be numbers")
-    return a + b
-\`\`\`
-
-\`\`\`python
-# tests/test_example.py
-import pytest
-from src.example import add
-
-def test_add():
-    assert add(1, 2) == 3
-
-def test_add_floats():
-    assert add(1.5, 2.5) == 4.0
-
-def test_add_type_error():
-    with pytest.raises(TypeError):
-        add("1", 2)
+from src.calculator import add, subtract
 \`\`\`
 EOF
 
-    # Example files
+    # PROMPTS.md
+    cat > "$PROJECT_DIR/PROMPTS.md" << 'EOF'
+# Test Generation Prompts
+
+## Python / pytest Prompt
+
+\`\`\`
+You are an expert Python test engineer. Generate comprehensive pytest tests.
+
+SOURCE CODE:
+[paste your source code here]
+
+REQUIREMENTS:
+1. Use pytest framework
+2. Test all public functions/methods
+3. Include edge cases: None, empty lists, empty strings, boundary values
+4. Test exceptions with pytest.raises()
+5. Aim for 100% code coverage
+6. Include docstrings for test functions
+7. Use descriptive test names (test_function_does_something)
+
+IMPORT PATH:
+Import from: from src.[module] import [function]
+Example: from src.calculator import add, subtract
+
+OUTPUT:
+Generate ONLY the test file code. Do not include:
+- Explanations or markdown
+- Code block markers (```)
+- Any text before or after the code
+
+Start directly with the import statements.
+\`\`\`
+EOF
+
+    # Example source file
     cat > "$PROJECT_DIR/src/example.py" << 'EOF'
-"""
-Example module - replace with your own code
-"""
+"""Example module - replace with your own code"""
 
 def example():
     """Returns a greeting message."""
     return "Hello, World!"
-EOF
-
-    cat > "$PROJECT_DIR/tests/test_example.py" << 'EOF'
-from src.example import example
-
-def test_example():
-    """Test that example returns correct greeting."""
-    assert example() == "Hello, World!"
 EOF
 
     echo -e "${GREEN}+ Python project created${NC}"
@@ -365,10 +472,10 @@ EOF
 
 # Create Java project
 create_java_project() {
-    # Convert project-name to ProjectName for Java
     java_name=$(echo "$project_name" | sed -r 's/(^|-)([a-z])/\U\2/g')
     
     mkdir -p "$PROJECT_DIR/src"/{main,test}/java/com/benchmark
+    mkdir -p "$PROJECT_DIR/src/test/java/com/benchmark"/{chatgpt,claude,gemini,copilot}
     
     # pom.xml
     cat > "$PROJECT_DIR/pom.xml" << EOF
@@ -385,7 +492,7 @@ create_java_project() {
     <packaging>jar</packaging>
 
     <name>$java_name</name>
-    <description>Benchmark project for AI test generation</description>
+    <description>Benchmark project for AI test generation comparison</description>
 
     <properties>
         <maven.compiler.source>11</maven.compiler.source>
@@ -454,86 +561,78 @@ EOF
     cat > "$PROJECT_DIR/README.md" << EOF
 # $project_name
 
-Benchmark project for evaluating AI test generation tools.
+Benchmark project for comparing AI test generation tools.
 
-## Prerequisites
-
-- Java 11 or higher
-- Maven 3.6+
-
-## Build
-
-\`\`\`bash
-mvn compile
-\`\`\`
-
-## Run Tests
-
-\`\`\`bash
-# Run tests
-mvn test
-
-# Run tests with coverage
-mvn test jacoco:report
-
-# Clean and test
-mvn clean test
-\`\`\`
-
-## View Coverage
-
-\`\`\`bash
-open target/site/jacoco/index.html
-\`\`\`
-
-## Project Structure
+## Structure
 
 \`\`\`
 $project_name/
 ├── src/
 │   ├── main/java/com/benchmark/    # Source code
 │   └── test/java/com/benchmark/    # Tests
-├── pom.xml                          # Maven configuration
-└── README.md                        # This file
+│       ├── chatgpt/                # ChatGPT tests
+│       ├── claude/                 # Claude tests
+│       ├── gemini/                 # Gemini tests
+│       └── copilot/                # Copilot tests
 \`\`\`
 
-## Adding Your Code
+## Running Tests
 
-1. Add Java classes to \`src/main/java/com/benchmark/\`
-2. Add test classes to \`src/test/java/com/benchmark/\` (name them \`*Test.java\`)
-3. Run \`mvn test\` to verify
-4. Run \`mvn jacoco:report\` to see coverage
+\`\`\`bash
+# Run specific LLM tests
+mvn test -Dtest="com.benchmark.chatgpt.**"
+mvn test -Dtest="com.benchmark.claude.**"
+mvn test -Dtest="com.benchmark.gemini.**"
+mvn test -Dtest="com.benchmark.copilot.**"
 
-## Example
-
-\`\`\`java
-// src/main/java/com/benchmark/Example.java
-package com.benchmark;
-
-public class Example {
-    public static String greet() {
-        return "Hello, World!";
-    }
-}
+# Run all tests
+mvn test
 \`\`\`
 
-\`\`\`java
-// src/test/java/com/benchmark/ExampleTest.java
-package com.benchmark;
+## Coverage
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
-public class ExampleTest {
-    @Test
-    public void testGreet() {
-        assertEquals("Hello, World!", Example.greet());
-    }
-}
+\`\`\`bash
+mvn test jacoco:report
+open target/site/jacoco/index.html
 \`\`\`
 EOF
 
-    # Example files
+    # PROMPTS.md
+    cat > "$PROJECT_DIR/PROMPTS.md" << 'EOF'
+# Test Generation Prompts
+
+## Java / JUnit 5 Prompt
+
+\`\`\`
+You are an expert Java test engineer. Generate comprehensive JUnit 5 tests.
+
+SOURCE CODE:
+[paste your source code here]
+
+REQUIREMENTS:
+1. Use JUnit 5 framework
+2. Test all public methods
+3. Include edge cases: null, empty collections, boundary values
+4. Test exceptions with assertThrows()
+5. Aim for 100% code coverage
+6. Include JavaDoc comments
+7. Use @Test annotation for each test method
+8. Use descriptive method names (testMethodDoesAction)
+
+PACKAGE:
+package com.benchmark.[chatgpt/claude/gemini/copilot];
+
+OUTPUT:
+Generate ONLY the test file code. Do not include:
+- Explanations or markdown
+- Code block markers (```)
+- Any text before or after the code
+
+Start directly with the package declaration.
+\`\`\`
+EOF
+
+    # Example source file
     cat > "$PROJECT_DIR/src/main/java/com/benchmark/Example.java" << 'EOF'
 package com.benchmark;
 
@@ -551,23 +650,11 @@ public class Example {
 }
 EOF
 
-    cat > "$PROJECT_DIR/src/test/java/com/benchmark/ExampleTest.java" << 'EOF'
-package com.benchmark;
-
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
-
-/**
- * Example test - replace with your own tests
- */
-public class ExampleTest {
-    
-    @Test
-    public void testGreet() {
-        assertEquals("Hello, World!", Example.greet());
-    }
-}
-EOF
+    # Create .gitkeep files (can remove if we are not committing these, but will keep for now)
+    touch "$PROJECT_DIR/src/test/java/com/benchmark/chatgpt/.gitkeep"
+    touch "$PROJECT_DIR/src/test/java/com/benchmark/claude/.gitkeep"
+    touch "$PROJECT_DIR/src/test/java/com/benchmark/gemini/.gitkeep"
+    touch "$PROJECT_DIR/src/test/java/com/benchmark/copilot/.gitkeep"
 
     echo -e "${GREEN}+ Java project created${NC}"
     echo ""
@@ -596,7 +683,18 @@ echo "========================================="
 echo ""
 echo "Location: $PROJECT_DIR"
 echo ""
-echo "To test with universal scripts:"
-echo "  bash run_all_tests.sh"
-echo "  bash generate_coverage_reports.sh"
+echo -e "${CYAN}LLM Test Directories:${NC}"
+echo "  tests/chatgpt/    - Paste ChatGPT tests here"
+echo "  tests/claude/     - Paste Claude tests here"
+echo "  tests/gemini/     - Paste Gemini tests here"
+echo "  tests/copilot/    - Paste Copilot tests here"
+echo ""
+echo -e "${YELLOW}See PROMPTS.md for ready-to-use prompts!${NC}"
+echo ""
+echo "Workflow:"
+echo "  1. Add source code to src/"
+echo "  2. Use prompts from PROMPTS.md with each LLM"
+echo "  3. Paste generated tests into respective folders"
+echo "  4. Run coverage for each: npm run coverage:chatgpt, etc."
+echo "  5. Record results in Excel spreadsheet"
 echo ""
