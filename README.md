@@ -1,17 +1,12 @@
 # AI Test Benchmark
 
-Quick test commands:
-- JavaScript: `cd benchmarks/javascript/lodash-subset && npm test`
-- Python: `cd benchmarks/python/custom-functions && pytest`
-
-## Java
-
-```bash
-cd benchmarks/java/commons-subset
-mvn test
-mvn jacoco:report
-open target/site/jacoco/index.html
+To quickly test generated tests, run the following command:
 ```
+bash run_all_tests.sh
+```
+
+This will generate a coverage report for all tests for all languages.
+
 ## Projects
 
 Projects can be added under the "benchmarks" folder under their respective language. Project templates must be created in order to ensure the functionality for generating test reports works.
