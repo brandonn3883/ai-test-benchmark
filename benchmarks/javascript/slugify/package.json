@@ -1,0 +1,17 @@
+{
+  "name": "slugify",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "jest",
+    "test:chatgpt": "jest tests/chatgpt",
+    "test:claude": "jest tests/claude",
+    "test:gemini": "jest tests/gemini",
+    "test:copilot": "jest tests/copilot",
+    "coverage": "jest --coverage",
+    "coverage:chatgpt": "jest tests/chatgpt --coverage --coverageDirectory=coverage/chatgpt",
+    "coverage:claude": "jest tests/claude --coverage --coverageDirectory=coverage/claude",
+    "coverage:gemini": "jest tests/gemini --coverage --coverageDirectory=coverage/gemini",
+    "coverage:copilot": "jest tests/copilot --coverage --coverageDirectory=coverage/copilot"
+  },
+  "devDependencies": { "jest": "^29.6.0" }
+}

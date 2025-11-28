@@ -5,3 +5,4 @@ coverage/
 .coverage
 *.pyc
 results/
+.vscode/settings.json

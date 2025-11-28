@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+
+group = 'com.benchmark'
+version = '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // ICU4J for Transliterator (if needed)
+    implementation 'com.ibm.icu:icu4j:74.2'
+    
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.42'
+    annotationProcessor 'org.projectlombok:lombok:1.18.42'
+    testCompileOnly 'org.projectlombok:lombok:1.18.42'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.42'
+    
+    // JUnit 5
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        csv.required = true
+        html.required = false
+    }
+}
+
+// Tasks for running specific LLM tests
+['chatgpt', 'claude', 'gemini', 'copilot'].each { llm ->
+    tasks.register("test${llm.capitalize()}", Test) {
+        useJUnitPlatform()
+        filter {
+            includeTestsMatching "com.benchmark.${llm}.*"
+        }
+        finalizedBy jacocoTestReport
+    }
+}
